@@ -39,6 +39,9 @@ class Character:
     def get_character_last_modified(self):
         return self.character_profile_request.headers['last-modified']
 
+    def get_character_last_modified_timestamp(self):
+        return self.character_profile['lastModified']
+
     def get_character_name(self):
         return self.character_profile['name']
 
