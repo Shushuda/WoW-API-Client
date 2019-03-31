@@ -11,4 +11,4 @@ class Connect:
             f'https://{region}.battle.net/oauth/token', data=data, auth=(client_id, client_secret)
         )
 
-        return response.json()['access_token']
+        return response.json().get('access_token')
