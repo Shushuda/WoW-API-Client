@@ -1,5 +1,7 @@
+from datetime import datetime
+
 import requests
-from utils import convert_race_name, convert_faction_name, convert_class_name, convert_gender_name
+from utils import convert_race_name, convert_faction_name, convert_class_name, convert_gender_name, get_character_thumbnail
 
 
 class Character:
@@ -37,11 +39,15 @@ class Character:
         )
         return response
 
-    def get_last_modified(self):
+    def get_last_modified_string(self):
         return self.character_profile_request.headers['last-modified']
 
     def get_last_modified_timestamp(self):
-        return self.character_profile.get('lastModified')
+        time = self.character_profile.get('lastModified')
+        if time is None:
+            return None
+        else:
+            return datetime.fromtimestamp(time//1000.0)
 
     def get_name(self):
         return self.character_profile.get('name')
@@ -68,10 +74,13 @@ class Character:
         return self.character_profile.get('achievementPoints')
 
     def get_avatar(self):
-        if 'thumbnail' in self.character_profile.keys():
-            return f"http://render-{self.region}.worldofwarcraft.com/character/{self.character_profile.get('thumbnail')}"
-        else:
-            return None
+        return get_character_thumbnail(self.character_profile, self.region, 'avatar')
+
+    def get_main_picture(self):
+        return get_character_thumbnail(self.character_profile, self.region, 'main')
+
+    def get_inset_picture(self):
+        return get_character_thumbnail(self.character_profile, self.region, 'inset')
 
     def get_faction(self):
         return convert_faction_name(self.character_profile.get('faction'))
