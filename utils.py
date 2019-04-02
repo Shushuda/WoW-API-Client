@@ -8,7 +8,7 @@ def convert_class_name(class_id):
 
 def convert_race_name(race_id):
     race_list = {
-        1: 'Human', 2: 'Orc', 3: 'Dwarf', 4: 'Night Elf', 5: 'Forsaken', 6: 'Tauren',
+        1: 'Human', 2: 'Orc', 3: 'Dwarf', 4: 'Night Elf', 5: 'Undead', 6: 'Tauren',
         7: 'Gnome', 8: 'Troll', 9: 'Goblin', 10: 'Blood Elf', 11: 'Draenei', 22: 'Worgen',
         24: 'Pandaren', 25: 'Pandaren', 26: 'Pandaren', 27: 'Nightborne', 28: 'Highmountain Tauren',
         29: 'Void Elf', 30: 'Lightforged Draenei', 31: 'Zandalari Troll', 32: 'Kul Tiran', 34: 'Dark Iron Dwarf',
@@ -39,3 +39,11 @@ def deep_get(dict, *keys):
             return None
     return dict
 
+
+def get_character_thumbnail(character_profile, region, img_type):
+    end_point = f"http://render-{region}.worldofwarcraft.com/character/"
+    if 'thumbnail' in character_profile.keys():
+        thumbnail = character_profile.get('thumbnail').replace('avatar', img_type)
+        return f"{end_point}{thumbnail}"
+    else:
+        return None
