@@ -32,6 +32,6 @@ The end user will also need to obtain a valid Blizzard API **client ID** and **c
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
 
-## Acknowledgments
+## Acknowledgements
 
 * [PurpleBooth](https://gist.github.com/PurpleBooth) for creating this amazing README template
