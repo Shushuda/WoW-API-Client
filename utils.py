@@ -31,13 +31,13 @@ def convert_faction_name(faction_id):
     return faction_list[faction_id]
 
 
-def deep_get(dict, *keys):
+def deep_get(dicti, *keys):
     for key in keys:
         try:
-            dict = dict[key]
+            dicti = dicti[key]
         except KeyError:
             return None
-    return dict
+    return dicti
 
 
 def get_character_thumbnail(character_profile, region, img_type):
@@ -47,3 +47,30 @@ def get_character_thumbnail(character_profile, region, img_type):
         return f"{end_point}{thumbnail}"
     else:
         return None
+
+
+def get_each_from_dict(dicti, *keys):
+    i_list = []
+
+    for item in dicti:
+        i_list.append(deep_get(item, *keys))
+
+    return i_list
+
+
+def get_each_item_slot(slots, dicti, *keys):
+    i_list = []
+    for slot in slots:
+        for key in keys:
+            i_list.append(deep_get(dicti, 'items', slot, key))
+
+    return i_list
+
+
+def get_item_icon(img_end_point, size):
+    end_point = f"https://wow.zamimg.com/images/wow/icons/{size}/"
+    return f"{end_point}{img_end_point}.jpg"
+
+
+def fix_realm_name(realm):
+    return realm.lower().replace(' ', '-')

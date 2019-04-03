@@ -1,4 +1,4 @@
-from utils import deep_get
+from utils import deep_get, get_each_from_dict
 
 
 def get_mount_num_collected(self):
@@ -10,10 +10,5 @@ def get_mount_num_not_collected(self):
 
 
 def get_mount_collected_spellId(self):
-    mount_list = []
     mounts = deep_get(self.character_profile, 'mounts', 'collected')
-
-    for mount in mounts:
-        mount_list.append(mount.get('spellId'))
-
-    return mount_list
+    return get_each_from_dict(mounts, 'spellId')
