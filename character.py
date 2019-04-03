@@ -1,7 +1,8 @@
 from datetime import datetime
 
 import requests
-from utils import convert_race_name, convert_faction_name, convert_class_name, convert_gender_name, get_character_thumbnail
+from utils import convert_race_name, convert_faction_name, convert_class_name, convert_gender_name, \
+    get_character_thumbnail, fix_realm_name
 
 
 class Character:
@@ -19,14 +20,20 @@ class Character:
     from characterAppearance import get_show_helm
     from characterAppearance import get_show_cloak
     from characterGuild import get_guild_name
+    from characterFeed import get_feed_dict
+    from characterItems import get_items_equipped_id
+    from characterItems import get_item_slot
+    from characterItems import get_avg_ilvl
+    from characterItems import get_avg_ilvl_equipped
 
     def __init__(self, access_token, region, realm, character_name):
         self.access_token = access_token
         self.region = region
-        self.realm = realm
+        self.realm = fix_realm_name(realm)
         self.character_name = character_name
 
-        self.character_profile_request = self.get_character_profile(access_token, region, realm, character_name)
+        self.character_profile_request = self.get_character_profile(self.access_token, self.region, self.realm,
+                                                                    self.character_name)
         self.character_profile = self.character_profile_request.json()
 
     @staticmethod
@@ -35,7 +42,7 @@ class Character:
         # make an error class with exception handling (connectionError etc)
         # make the app throw those errors outside of the app for the end-user to handle themselves
         response = requests.get(
-            f'https://{region}.api.blizzard.com/wow/character/{realm}/{character_name}?fields=guild&fields=appearance&fields=achievements&fields=feed&fields=mounts&access_token={access_token}'
+            f'https://{region}.api.blizzard.com/wow/character/{realm}/{character_name}?fields=items%2C%20guild%2C%20appearance%2C%20achievements%2C%20feed%2C%20mounts&access_token={access_token}'
         )
         return response
 
