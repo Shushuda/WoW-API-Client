@@ -1,4 +1,5 @@
 import requests
+from exceptions import APIConnectionError
 
 
 class Connect:
@@ -7,18 +8,28 @@ class Connect:
     def get_token(region, client_id, client_secret):
         data = {'grant_type': 'client_credentials'}
 
-        response = requests.post(
-            f'https://{region}.battle.net/oauth/token', data=data, auth=(client_id, client_secret)
-        )
+        try:
+            response = requests.post(
+                f'https://{region}.battle.net/oauth/token', data=data, auth=(client_id, client_secret)
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise APIConnectionError(e)
+
+        if 'error' in response.json():
+            e = "Bad credentials"
+            raise APIConnectionError(e)
 
         return response.json().get('access_token')
 
     @staticmethod
-    # checks whether token is valid, if no then return 0, if yes then return expire time in milliseconds
-    def check_token(token, region):
-        response = requests.post(
-            f'https://{region}.battle.net/oauth/check_token?token={token}'
-        )
+    # returns expire time, 0 = expired/invalid
+    def check_token(region, token):
+        try:
+            response = requests.post(
+                f'https://{region}.battle.net/oauth/check_token?token={token}'
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise APIConnectionError(e)
 
         if 'error' in response.json().keys():
             return 0
