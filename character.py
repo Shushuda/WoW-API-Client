@@ -142,12 +142,11 @@ class Character:
     def get_item_slot(self, slot):
         item = get_each_item_slot([slot], self.character_profile, 'id', 'name',
                                   'itemLevel', 'icon')
-        img_end_point = item[3]
-        item.pop(3)
-        icons = [get_item_icon(img_end_point, 'small'),
-                 get_item_icon(img_end_point, 'medium'),
-                 get_item_icon(img_end_point, 'large')]
-        item.extend(icons)
+        img_end_point = item['icon']
+        del item['icon']
+        item['icon_small'] = get_item_icon(img_end_point, 'small')
+        item['icon_medium'] = get_item_icon(img_end_point, 'medium')
+        item['icon_large'] = get_item_icon(img_end_point, 'large')
         return item
 
     def get_avg_ilvl(self):

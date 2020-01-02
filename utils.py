@@ -69,12 +69,12 @@ def get_each_from_dict(dicti, *keys):
 
 
 def get_each_item_slot(slots, dicti, *keys):
-    i_list = []
+    i_dict = {}
     for slot in slots:
         for key in keys:
-            i_list.append(deep_get(dicti, 'items', slot, key))
+            i_dict[key] = (deep_get(dicti, 'items', slot, key))
 
-    return i_list
+    return i_dict
 
 
 def get_item_icon(img_end_point, size):
