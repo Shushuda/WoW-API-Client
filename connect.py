@@ -10,7 +10,8 @@ class Connect:
 
         try:
             response = requests.post(
-                f'https://{region}.battle.net/oauth/token', data=data, auth=(client_id, client_secret)
+                f'https://{region}.battle.net/oauth/token', data=data,
+                auth=(client_id, client_secret)
             )
         except requests.exceptions.ConnectionError as e:
             raise APIConnectionError(e)
