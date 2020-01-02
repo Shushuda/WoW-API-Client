@@ -44,13 +44,19 @@ def deep_get(dicti, *keys):
 
 
 def get_character_thumbnail(character_profile, region, img_type):
-    end_point = f"http://render-{region}.worldofwarcraft.com/character/"
+    end_point = f"https://render-{region}.worldofwarcraft.com/character/"
     if 'thumbnail' in character_profile.keys():
         thumbnail = character_profile.get('thumbnail').replace('avatar',
                                                                img_type)
         return f"{end_point}{thumbnail}"
     else:
-        return None
+        if img_type == 'avatar':
+            fallback_end_point = \
+                f"https://render-{region}.worldofwarcraft.com/shadow/"
+            fallback = "avatar/2-1.jpg"
+            return f"{fallback_end_point}{fallback}"
+        else:
+            return None
 
 
 def get_each_from_dict(dicti, *keys):
