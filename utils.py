@@ -1,37 +1,6 @@
-def convert_class_name(class_id):
-    class_list = {
-        1: 'Warrior', 2: 'Paladin', 3: 'Hunter', 4: 'Rogue', 5: 'Priest',
-        6: 'Death Knight', 7: 'Shaman', 8: 'Mage', 9: 'Warlock', 10: 'Monk',
-        11: 'Druid', 12: 'Demon Hunter', None: 'None',
-    }
-    return class_list[class_id]
+import requests
 
-
-def convert_race_name(race_id):
-    race_list = {
-        1: 'Human', 2: 'Orc', 3: 'Dwarf', 4: 'Night Elf', 5: 'Undead',
-        6: 'Tauren', 7: 'Gnome', 8: 'Troll', 9: 'Goblin', 10: 'Blood Elf',
-        11: 'Draenei', 22: 'Worgen', 24: 'Pandaren', 25: 'Pandaren',
-        26: 'Pandaren', 27: 'Nightborne', 28: 'Highmountain Tauren',
-        29: 'Void Elf', 30: 'Lightforged Draenei', 31: 'Zandalari Troll',
-        32: 'Kul Tiran', 34: 'Dark Iron Dwarf', 36: "Mag'har Orc",
-        None: 'None',
-    }
-    return race_list[race_id]
-
-
-def convert_gender_name(gender_id):
-    gender_list = {
-        0: 'Male', 1: 'Female', None: 'None',
-    }
-    return gender_list[gender_id]
-
-
-def convert_faction_name(faction_id):
-    faction_list = {
-        0: 'Alliance', 1: 'Horde', 2: 'Neutral', None: 'None',
-    }
-    return faction_list[faction_id]
+from exceptions import APIConnectionError
 
 
 def deep_get(dicti, *keys):
@@ -43,20 +12,62 @@ def deep_get(dicti, *keys):
     return dicti
 
 
-def get_character_thumbnail(character_profile, region, img_type):
-    end_point = f"https://render-{region}.worldofwarcraft.com/character/"
-    if 'thumbnail' in character_profile.keys():
-        thumbnail = character_profile.get('thumbnail').replace('avatar',
-                                                               img_type)
-        return f"{end_point}{thumbnail}"
+def get_endpoint_data(endpoint, token):
+    try:
+        token_url = f"&access_token={token}"
+        response = requests.get(f"{endpoint}{token_url}")
+    except requests.exceptions.ConnectionError as e:
+        raise APIConnectionError(e)
+
+    if response.status_code == 401:
+        e = "Invalid access token"
+        raise APIConnectionError(e)
+
+    return response
+
+
+def get_character_media(character_profile, token, data_name, key_list):
+    data = get_character_data(character_profile, token, data_name, key_list)
+    if data != {}:
+        return data
     else:
-        if img_type == 'avatar':
-            fallback_end_point = \
-                f"https://render-{region}.worldofwarcraft.com/shadow/"
-            fallback = "avatar/2-1.jpg"
-            return f"{fallback_end_point}{fallback}"
-        else:
-            return None
+        fallback_end_point = \
+            f"https://render-eu.worldofwarcraft.com/shadow/"
+        fallback = "avatar/2-1.jpg"
+        return {'avatar_url': f"{fallback_end_point}{fallback}"}
+
+
+def get_character_data(character_profile, token, data_name, key_list):
+    if data_name in character_profile.keys():
+        endpoint = deep_get(character_profile, data_name, 'href')
+        full_data = get_endpoint_data(endpoint, token).json()
+        data = {key: value for key, value in full_data.items()
+                if key in key_list}
+        return data
+    else:
+        return {}
+
+
+def get_character_encounters(character_profile, token, data_name):
+    base_key_list = ["dungeons", "raids"]
+    base_data = get_character_data(character_profile, token, 'encounters',
+                                   base_key_list)
+    data = get_character_data(base_data, token, data_name, ['expansions'])
+    if data:
+        return {data_name: data}
+    else:
+        return {}
+
+
+def get_character_collection(character_profile, token, data_name):
+    base_key_list = ["pets", "mounts"]
+    base_data = get_character_data(character_profile, token, 'collections',
+                                   base_key_list)
+    data = get_character_data(base_data, token, data_name, data_name)
+    if data:
+        return {data_name: data}
+    else:
+        return {}
 
 
 def get_each_from_dict(dicti, *keys):
