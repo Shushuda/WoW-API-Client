@@ -1,7 +1,8 @@
 from datetime import datetime
 from utils import get_character_media, fix_realm_name, deep_get, \
-    get_each_item_slot, get_item_icon, get_each_from_dict, get_endpoint_data, \
-    get_character_data, get_character_encounters, get_character_collection
+    get_each_item_slot, get_each_from_dict, get_endpoint_data, \
+    get_character_data, get_character_encounters, get_character_collection, \
+    fix_item_media
 
 
 class Character:
@@ -21,12 +22,17 @@ class Character:
         main_endpoint = f'https://{region}.api.blizzard.com/profile/wow/character/{realm}/{character_name}?namespace=profile-{region}&locale=en_GB'  # noqa
 
         character_data = get_endpoint_data(main_endpoint, access_token).json()
+        try:
+            del character_data['_links']
+        except KeyError:
+            pass
 
         data_key_list = ["avatar_url", "bust_url", "render_url"]
         media_data = get_character_media(character_data, access_token, 'media',
                                          data_key_list)
         try:
             character_data['media'].update(media_data)
+            del character_data['media']['href']
         except KeyError:
             character_data.update({'media': media_data})
 
@@ -38,6 +44,7 @@ class Character:
                                                achievements_key_list)
         try:
             character_data['achievements'].update(achievements_data)
+            del character_data['achievements']['href']
         except KeyError:
             pass
 
@@ -46,6 +53,7 @@ class Character:
                                          'titles', titles_key_list)
         try:
             character_data['titles'].update(titles_data)
+            del character_data['titles']['href']
         except KeyError:
             pass
 
@@ -54,6 +62,7 @@ class Character:
                                       'pvp_summary', pvp_key_list)
         try:
             character_data['pvp_summary'].update(pvp_data)
+            del character_data['pvp_summary']['href']
         except KeyError:
             pass
 
@@ -68,6 +77,7 @@ class Character:
                                               'raids')
         try:
             character_data['encounters'].update(raids_data)
+            del character_data['encounters']['href']
         except KeyError:
             pass
 
@@ -76,6 +86,7 @@ class Character:
                                        'specializations', spec_key_list)
         try:
             character_data['specializations'].update(spec_data)
+            del character_data['specializations']['href']
         except KeyError:
             pass
 
@@ -97,23 +108,17 @@ class Character:
                                         'statistics', stats_key_list)
         try:
             character_data['statistics'].update(stats_data)
-        except KeyError:
-            pass
-
-        mythic_key_list = ["current_period"]
-        mythic_data = get_character_data(character_data, access_token,
-                                         'mythic_keystone_profile',
-                                         mythic_key_list)
-        try:
-            character_data['mythic_keystone_profile'].update(mythic_data)
+            del character_data['statistics']['href']
         except KeyError:
             pass
 
         equipment_key_list = ["equipped_items"]
         equipment_data = get_character_data(character_data, access_token,
                                             'equipment', equipment_key_list)
+        equipment_data = fix_item_media(equipment_data, access_token)
         try:
             character_data['equipment'].update(equipment_data)
+            del character_data['equipment']['href']
         except KeyError:
             pass
 
@@ -128,6 +133,7 @@ class Character:
                                                'mounts')
         try:
             character_data['collections'].update(mounts_data)
+            del character_data['collections']['href']
         except KeyError:
             pass
 
@@ -136,6 +142,7 @@ class Character:
                                       'reputations', rep_key_list)
         try:
             character_data['reputations'].update(rep_data)
+            del character_data['reputations']['href']
         except KeyError:
             pass
 
@@ -147,6 +154,7 @@ class Character:
         try:
             character_data['achievements_statistics'].update(
                 achievement_stats_data)
+            del character_data['achievements_statistics']['href']
         except KeyError:
             pass
 
@@ -159,22 +167,25 @@ class Character:
         return self.character_profile.get('name')
 
     def get_gender(self):
-        return self.character_profile.get('gender')
+        return deep_get(self.character_profile, 'gender', 'name')
 
     def get_faction(self):
-        return self.character_profile.get('faction')
+        return deep_get(self.character_profile, 'faction', 'name')
 
     def get_race(self):
-        return self.character_profile.get('race')
+        return deep_get(self.character_profile, 'race', 'name')
 
     def get_class(self):
-        return self.character_profile.get('character_class')
+        return deep_get(self.character_profile, 'character_class', 'name')
 
     def get_active_spec(self):
-        return self.character_profile.get('active_spec')
+        return deep_get(self.character_profile, 'active_spec', 'name')
 
     def get_realm(self):
-        return self.character_profile.get('realm')
+        return deep_get(self.character_profile, 'realm', 'name')
+
+    def get_realm_slug(self):
+        return deep_get(self.character_profile, 'realm', 'slug')
 
     def get_guild_name(self):
         return deep_get(self.character_profile, 'guild', 'name')
@@ -186,7 +197,7 @@ class Character:
         return deep_get(self.character_profile, 'guild', 'realm')
 
     def get_guild_fraction(self):
-        return deep_get(self.character_profile, 'guild', 'fraction')
+        return deep_get(self.character_profile, 'guild', 'faction')
 
     def get_level(self):
         return self.character_profile.get('level')
@@ -219,17 +230,22 @@ class Character:
     def get_active_title(self):
         return deep_get(self.character_profile, 'titles', 'active_title')
 
-    def get_pvp_summary(self):
-        # TODO
-        pass
+    def get_honor_level(self):
+        return deep_get(self.character_profile, 'pvp_summary', 'honor_level')
+
+    def get_pvp_map_statistics(self):
+        return deep_get(self.character_profile, 'pvp_summary',
+                        'pvp_map_statistics')
+
+    def get_honorable_kills(self):
+        return deep_get(self.character_profile, 'pvp_summary',
+                        'honorable_kills')
 
     def get_raid_encounters(self):
-        # TODO
-        pass
+        return deep_get(self.character_profile, 'encounters', 'raids')
 
     def get_dungeon_encounters(self):
-        # TODO
-        pass
+        return deep_get(self.character_profile, 'encounters', 'dungeons')
 
     def get_avatar(self):
         return deep_get(self.character_profile, 'media', 'avatar_url')
@@ -254,36 +270,31 @@ class Character:
         return self.character_profile.get('equipped_item_level')
 
     def get_specs(self):
-        # TODO
-        pass
+        return deep_get(self.character_profile, 'specializations',
+                        'specializations')
 
     def get_statistics(self):
-        # TODO
-        pass
+        return self.character_profile.get('statistics')
 
-    def get_mythic_keystone_profile(self):
-        # TODO
-        pass
+    def get_items_equipped(self):
+        return deep_get(self.character_profile, 'equipment', 'equipped_items')
 
     def get_items_equipped_id(self):
-        # TODO
-        pass
-        # slots = ['head', 'neck', 'shoulder', 'back', 'chest', 'shirt',
-        #          'wrist', 'hands', 'waist', 'legs', 'feet', 'finger1',
-        #          'finger2', 'trinket1', 'trinket2', 'mainHand', 'offHand']
-        # return get_each_item_slot(slots, self.character_profile, 'id')
+        item_list = deep_get(self.character_profile, 'equipment',
+                             'equipped_items')
+        if item_list:
+            return get_each_from_dict(item_list, 'item', 'id')
+        else:
+            return None
 
-    def get_item_slot(self, slot):
-        # TODO
-        pass
-        # item = get_each_item_slot([slot], self.character_profile, 'id',
-        #                           'name', 'itemLevel', 'icon')
-        # img_end_point = item['icon']
-        # del item['icon']
-        # item['icon_small'] = get_item_icon(img_end_point, 'small')
-        # item['icon_medium'] = get_item_icon(img_end_point, 'medium')
-        # item['icon_large'] = get_item_icon(img_end_point, 'large')
-        # return item
+    def get_item_slot(self, slot, *item_info_keys):
+        item_list = deep_get(self.character_profile, 'equipment',
+                             'equipped_items')
+        if item_list:
+            item = get_each_item_slot([slot], item_list, *item_info_keys)
+            return item
+        else:
+            return None
 
     def get_face_type(self):
         # TODO
@@ -305,24 +316,25 @@ class Character:
         # TODO
         pass
 
-    def get_total_honorable_kills(self):
-        # TODO
-        pass
+    def get_mounts(self):
+        return deep_get(self.character_profile, 'collections', 'mounts')
+
+    def get_pets(self):
+        return deep_get(self.character_profile, 'collections', 'pets')
 
     def get_mount_num_collected(self):
-        # TODO
-        pass
+        mounts = deep_get(self.character_profile, 'collections', 'mounts',
+                          'mounts')
+        return len(mounts)
 
     def get_mount_collected_spell_id(self):
-        # TODO
-        pass
-        # mounts = deep_get(self.character_profile, 'mounts', 'collected')
-        # return get_each_from_dict(mounts, 'spellId')
+        mounts = deep_get(self.character_profile, 'collections', 'mounts',
+                          'mounts')
+        return get_each_from_dict(mounts, 'mount', 'id')
 
     def get_reputations(self):
-        # TODO
-        pass
+        return deep_get(self.character_profile, 'reputations', 'reputations')
 
     def get_achievement_statistics(self):
-        # TODO
-        pass
+        return deep_get(self.character_profile, 'achievements_statistics',
+                        'categories')
