@@ -13,17 +13,25 @@ def deep_get(dicti, *keys):
 
 
 def get_endpoint_data(endpoint, token):
-    try:
-        token_url = f"&access_token={token}"
-        response = requests.get(f"{endpoint}{token_url}")
-    except requests.exceptions.ConnectionError as e:
-        raise APIConnectionError(e)
+    def api_call():
+        try:
+            token_url = f"&access_token={token}"
+            response = requests.get(f"{endpoint}{token_url}")
+            return response
+        except requests.exceptions.ConnectionError as e:
+            raise APIConnectionError(e)
+    retry = 0
+    while retry < 3:
+        result = api_call()
+        if result.status_code != 503:
+            break
+        retry += 1
 
-    if response.status_code == 401:
+    if result.status_code == 401:
         e = "Invalid access token"
         raise APIConnectionError(e)
 
-    return response
+    return result
 
 
 def get_character_media(character_profile, token, data_name, key_list):
@@ -79,19 +87,67 @@ def get_each_from_dict(dicti, *keys):
     return i_list
 
 
-def get_each_item_slot(slots, dicti, *keys):
+def get_each_item_slot(slots, item_list, *keys):
+    if not keys:
+        keys = ['item', 'slot', 'context', 'bonus_list', 'quality', 'name',
+                'azerite_details', 'media', 'item_class', 'item_subclass',
+                'inventory_type', 'binding', 'armor', 'stats', 'requirements',
+                'level', 'transmog', 'durability']
     i_dict = {}
     for slot in slots:
-        for key in keys:
-            i_dict[key] = (deep_get(dicti, 'items', slot, key))
+        for item in item_list:
+            if item['slot']['type'] == slot.upper():
+                item_data = {key: value for key, value in item.items()
+                             if key in keys}
+                i_dict.update({slot: item_data})
+                break
 
     return i_dict
 
 
-def get_item_icon(img_end_point, size):
-    end_point = f"https://wow.zamimg.com/images/wow/icons/{size}/"
-    return f"{end_point}{img_end_point}.jpg"
-
-
 def fix_realm_name(realm):
     return realm.lower().replace(' ', '-')
+
+
+def fix_item_media(equipment_data, access_token):
+    try:
+        for item in equipment_data['equipped_items']:
+            try:
+                del item['item']['key']
+            except KeyError:
+                pass
+            try:
+                del item['item_class']['key']
+            except KeyError:
+                pass
+            try:
+                del item['item_subclass']['key']
+            except KeyError:
+                pass
+            try:
+                transmog_endpoint = item['transmog']['item']['key']['href']
+                del item['transmog']['item']['key']
+                transmog_media_endpoint = get_endpoint_data(
+                    transmog_endpoint,
+                    access_token).json()['media']['key']['href']
+                transmog_data = get_endpoint_data(
+                    transmog_media_endpoint, access_token).json()['assets']
+                item_icon = [asset['value'] for asset in transmog_data
+                             if asset['key'] == 'icon']
+                item['transmog'].update({'icon': item_icon})
+            except KeyError:
+                pass
+            try:
+                media_endpoint = item['media']['key']['href']
+                del item['media']['key']
+                item_data = get_endpoint_data(
+                    media_endpoint, access_token).json()['assets']
+                item_icon = [asset['value'] for asset in item_data
+                             if asset['key'] == 'icon']
+                item['media'].update({'icon': item_icon})
+            except KeyError:
+                item.update({'media': None})
+    except KeyError:
+        pass
+
+    return equipment_data
