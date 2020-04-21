@@ -20,12 +20,10 @@ def get_endpoint_data(endpoint, token):
             return response
         except requests.exceptions.ConnectionError as e:
             raise APIConnectionError(e)
-    retry = 0
-    while retry < 3:
+    for retry in range(0, 3):
         result = api_call()
         if result.status_code != 503:
             break
-        retry += 1
 
     if result.status_code == 401:
         e = "Invalid access token"
