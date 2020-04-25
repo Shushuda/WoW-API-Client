@@ -7,7 +7,7 @@ def deep_get(dicti, *keys):
     for key in keys:
         try:
             dicti = dicti[key]
-        except KeyError:
+        except (KeyError, TypeError):
             return None
     return dicti
 
