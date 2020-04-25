@@ -203,10 +203,10 @@ class Character:
         return deep_get(self.character_profile, 'guild', 'id')
 
     def get_guild_realm(self):
-        return deep_get(self.character_profile, 'guild', 'realm')
+        return deep_get(self.character_profile, 'guild', 'realm', 'name')
 
     def get_guild_faction(self):
-        return deep_get(self.character_profile, 'guild', 'faction')
+        return deep_get(self.character_profile, 'guild', 'faction', 'name')
 
     def get_level(self):
         return self.character_profile.get('level')
