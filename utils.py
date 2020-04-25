@@ -149,3 +149,26 @@ def fix_item_media(equipment_data, access_token):
         pass
 
     return equipment_data
+
+
+def fix_title_data(title_data):
+    try:
+        del title_data['active_title']['key']
+    except KeyError:
+        pass
+    for title in title_data['titles']:
+        try:
+            del title['key']
+        except KeyError:
+            pass
+
+    return title_data
+
+
+def fix_reputation_data(rep_data):
+    for rep in rep_data['reputations']:
+        try:
+            del rep['faction']['key']
+        except KeyError:
+            pass
+    return rep_data
