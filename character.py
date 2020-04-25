@@ -4,7 +4,7 @@ from typing import Tuple, Any
 from utils import get_character_media, fix_realm_name, deep_get, \
     get_each_item_slot, get_each_from_dict, get_endpoint_data, \
     get_character_data, get_character_encounters, get_character_collection, \
-    fix_item_media
+    fix_item_media, fix_title_data, fix_reputation_data
 
 
 class Character:
@@ -58,6 +58,7 @@ class Character:
         titles_key_list = ["active_title", "titles"]
         titles_data = get_character_data(character_data, access_token,
                                          'titles', titles_key_list)
+        titles_data = fix_title_data(titles_data)
         try:
             character_data['titles'].update(titles_data)
             del character_data['titles']['href']
@@ -147,6 +148,7 @@ class Character:
         rep_key_list = ["reputations"]
         rep_data = get_character_data(character_data, access_token,
                                       'reputations', rep_key_list)
+        rep_data = fix_reputation_data(rep_data)
         try:
             character_data['reputations'].update(rep_data)
             del character_data['reputations']['href']
