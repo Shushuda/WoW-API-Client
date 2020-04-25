@@ -131,7 +131,7 @@ def fix_item_media(equipment_data, access_token):
                 transmog_data = get_endpoint_data(
                     transmog_media_endpoint, access_token).json()['assets']
                 item_icon = [asset['value'] for asset in transmog_data
-                             if asset['key'] == 'icon']
+                             if asset['key'] == 'icon'][0]
                 item['transmog'].update({'icon': item_icon})
             except KeyError:
                 pass
@@ -141,7 +141,7 @@ def fix_item_media(equipment_data, access_token):
                 item_data = get_endpoint_data(
                     media_endpoint, access_token).json()['assets']
                 item_icon = [asset['value'] for asset in item_data
-                             if asset['key'] == 'icon']
+                             if asset['key'] == 'icon'][0]
                 item['media'].update({'icon': item_icon})
             except KeyError:
                 item.update({'media': None})
