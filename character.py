@@ -196,7 +196,7 @@ class Character:
     def get_guild_realm(self):
         return deep_get(self.character_profile, 'guild', 'realm')
 
-    def get_guild_fraction(self):
+    def get_guild_faction(self):
         return deep_get(self.character_profile, 'guild', 'faction')
 
     def get_level(self):
