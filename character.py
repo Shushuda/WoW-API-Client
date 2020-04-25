@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Tuple, Any
+
 from utils import get_character_media, fix_realm_name, deep_get, \
     get_each_item_slot, get_each_from_dict, get_endpoint_data, \
     get_character_data, get_character_encounters, get_character_collection, \
@@ -20,7 +22,8 @@ class Character:
 
     @staticmethod
     def get_character_profile(access_token: object, region: object,
-                              realm: object, character_name: object) -> dict:
+                              realm: object, character_name: object)\
+            -> Tuple[dict, Any]:
         main_endpoint = f'https://{region}.api.blizzard.com/profile/wow/character/{realm}/{character_name}?namespace=profile-{region}&locale=en_GB'  # noqa
 
         character_profile_request = get_endpoint_data(main_endpoint,
@@ -295,8 +298,11 @@ class Character:
         item_list = deep_get(self.character_profile, 'equipment',
                              'equipped_items')
         if item_list:
-            item = get_each_item_slot([slot], item_list, *item_info_keys)[slot]
-            return item
+            try:
+                item = get_each_item_slot([slot], item_list, *item_info_keys)[slot]
+                return item
+            except KeyError:
+                return None
         else:
             return None
 
