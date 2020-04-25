@@ -13,15 +13,19 @@ class Character:
         self.realm = fix_realm_name(realm)
         self.character_name = character_name.lower()
 
-        self.character_profile = self.get_character_profile(
-            self.access_token, self.region, self.realm, self.character_name)
+        self.character_profile, self.character_profile_request = \
+            self.get_character_profile(
+                self.access_token, self.region, self.realm,
+                self.character_name)
 
     @staticmethod
     def get_character_profile(access_token: object, region: object,
                               realm: object, character_name: object) -> dict:
         main_endpoint = f'https://{region}.api.blizzard.com/profile/wow/character/{realm}/{character_name}?namespace=profile-{region}&locale=en_GB'  # noqa
 
-        character_data = get_endpoint_data(main_endpoint, access_token).json()
+        character_profile_request = get_endpoint_data(main_endpoint,
+                                                      access_token)
+        character_data = character_profile_request.json()
         try:
             del character_data['_links']
         except KeyError:
@@ -158,7 +162,7 @@ class Character:
         except KeyError:
             pass
 
-        return character_data
+        return character_data, character_profile_request
 
     def get_id(self):
         return self.character_profile.get('id')
@@ -291,7 +295,7 @@ class Character:
         item_list = deep_get(self.character_profile, 'equipment',
                              'equipped_items')
         if item_list:
-            item = get_each_item_slot([slot], item_list, *item_info_keys)
+            item = get_each_item_slot([slot], item_list, *item_info_keys)[slot]
             return item
         else:
             return None
