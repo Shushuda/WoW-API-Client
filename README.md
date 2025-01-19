@@ -26,7 +26,7 @@ The end user will also need to obtain a valid Blizzard API **client ID** and **c
 
 ## Authors
 
-* **Weronika Sikora** - [Shushuda](https://github.com/Shushuda)
+* [Shushuda](https://github.com/Shushuda)
 
 ## License
 
